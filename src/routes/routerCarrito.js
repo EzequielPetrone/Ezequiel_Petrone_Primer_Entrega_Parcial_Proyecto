@@ -42,11 +42,18 @@ routerCarrito.post("/", async (req, res) => {
 routerCarrito.delete("/:id", async (req, res) => {
     try {
         const id = req.params.id
-        //TODO: primero tengo que devolver el stock a los productos...
-        if (await contenedorCarritos.deleteById(id)) {
+        const carrito = await contenedorCarritos.getById(id)
+        if (carrito && carrito.productos) { //Valido que exista carrito con el id recibido
+
+            for (const p of carrito.productos) {
+                //Por cada producto dentro del array del carrito lo que hago es devolver el stock
+                await contenedorProductos.actualizarStock(p.id, p.stock)
+            }
+            await contenedorCarritos.deleteById(id)
             res.json({ ok: `Eliminado del file carrito con id ${id}` })
+
         } else {
-            throw `No hay carrito con id ${id} para eliminar. Contenido del file sigue igual`
+            throw `Carrito con id ${id} NO encontrado`
         }
     } catch (error) {
         res.status(500).json({ error: error });
@@ -84,8 +91,8 @@ routerCarrito.post("/:id/productos", async (req, res) => {
                 if (await contenedorProductos.actualizarStock(idProd, - qty)) { //Valido que se pueda actualizar el stock del maestro de productos según la qty recibida
 
                     const index = carrito.productos.findIndex(p => p.id == idProd)
-                    if (index >= 0) { //Si ya existe el producto en el carrito le sumo la qty deseada
-                        console.log('entra en el if index', idProd)
+                    if (index >= 0) {
+                        //Si ya existe el producto en el carrito le sumo la qty deseada
                         carrito.productos[index].stock += qty
 
                     } else { //Sino lo agrego como nuevo elemento
@@ -114,21 +121,23 @@ routerCarrito.post("/:id/productos", async (req, res) => {
 routerCarrito.delete("/:id/productos/:id_prod", async (req, res) => {
     try {
         const { id, id_prod } = req.params
-        res.json(req.params) //TODO: ELIMINAR ESTA LINEA
-        /*
-        //TODO: primero tengo que devolver el stock a los productos...
-        const prod = null
-        if (await contenedorProductos.actualizarStock(id_prod, qty)) {
+        const carrito = await contenedorCarritos.getById(id)
+        if (carrito && carrito.productos) { //Valido que exista carrito con el id recibido
 
-            if (false) {
-                res.json({ ok: `Eliminado del file carrito con id ${id}` })
+            const index = carrito.productos.findIndex(p => p.id == id_prod)
+            if (index >= 0) {
+                //Si existe el producto dentro del carrito lo primero que hago es devolver su stock y después lo elimino
+                await contenedorProductos.actualizarStock(id_prod, carrito.productos[index].stock)
+                carrito.productos.splice(index)
+                await contenedorCarritos.editById(id, carrito) //Escribo el carrito editado
+                res.json({ ok: `Eliminado del carrito con id ${id} el producto con id ${id_prod}` })
+
             } else {
-                throw `No hay carrito con id ${id} para eliminar. Contenido del file sigue igual`
+                throw `Producto con id ${id_prod} NO encontrado dentro del carrito con id ${id}`
             }
         } else {
-            throw `No puede devolverse el stock al producto con id ${id_prod}`
+            throw `Carrito con id ${id} NO encontrado`
         }
-        */
     } catch (error) {
         res.status(500).json({ error: error });
     }
