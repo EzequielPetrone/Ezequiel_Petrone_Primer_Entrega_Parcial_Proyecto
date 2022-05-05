@@ -1,5 +1,5 @@
 //Importo Clase Contenedor para luego extender de ella
-const Contenedor = require('./Contenedor')
+import Contenedor from './Contenedor.js';
 
 class ContenedorProductos extends Contenedor {
 
@@ -35,4 +35,4 @@ const isProducto = (obj) => {
     }
 }
 
-module.exports = { ContenedorProductos, isProducto }
+export { ContenedorProductos, isProducto }

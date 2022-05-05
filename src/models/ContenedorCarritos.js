@@ -1,5 +1,5 @@
 //Importo Clase Contenedor para luego extender de ella
-const Contenedor = require('./Contenedor')
+import Contenedor from './Contenedor.js';
 
 class ContenedorCarritos extends Contenedor {
 
@@ -10,4 +10,4 @@ class ContenedorCarritos extends Contenedor {
     // TODO gestion stock
 }
 
-module.exports = { ContenedorCarritos }
+export { ContenedorCarritos }

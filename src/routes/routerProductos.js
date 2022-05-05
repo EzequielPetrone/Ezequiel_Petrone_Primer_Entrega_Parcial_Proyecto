@@ -1,15 +1,15 @@
 //Importo clase Contenedora e instancio. También una fx de utilidad
-const { ContenedorProductos, isProducto } = require('../models/ContenedorProductos')
+import { ContenedorProductos, isProducto } from '../models/ContenedorProductos.js';
 const contenedorProductos = new ContenedorProductos()
 
 //Importo express y configuro Routers
-const express = require("express");
+import express, { json, urlencoded } from "express";
 const { Router } = express
 const routerProductos = Router()
 
 //Configuro para poder leer sin problemas los req.body
-routerProductos.use(express.json())
-routerProductos.use(express.urlencoded({ extended: true }))
+routerProductos.use(json())
+routerProductos.use(urlencoded({ extended: true }))
 
 //GET '/api/productos' -> devuelve todos los productos.
 routerProductos.get("/", async (req, res) => {
@@ -87,4 +87,4 @@ routerProductos.delete("/:id", async (req, res) => {
     }
 })
 
-module.exports = routerProductos
+export default routerProductos

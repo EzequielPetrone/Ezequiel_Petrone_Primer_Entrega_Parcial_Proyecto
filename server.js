@@ -1,11 +1,13 @@
-try {
-    //Importo express y creo server app. 
-    const express = require("express");
-    const app = express();
+//Importo express y creo server app. 
+import express from 'express';
+const app = express();
 
-    //Importo y seteo Routes
-    const routerProductos = require('./src/routes/routerProductos')
-    const routerCarrito = require('./src/routes/routerCarrito')
+//Importo Routes
+import routerProductos from './src/routes/routerProductos.js';
+import routerCarrito from './src/routes/routerCarrito.js';
+
+try {
+    //Seteo Routes
     app.use('/api/productos', routerProductos)
     app.use('/api/carrito', routerCarrito)
 

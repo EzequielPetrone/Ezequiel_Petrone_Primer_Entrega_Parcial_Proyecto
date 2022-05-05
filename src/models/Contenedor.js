@@ -1,6 +1,6 @@
 // Importo de Node 'fs' para gestión del FileSystem y 'path' para tratamiento de rutas
-const fs = require('fs')
-const path = require('path');
+import { existsSync, mkdirSync, writeFileSync, readFileSync, promises } from 'fs';
+import { dirname } from 'path';
 
 class Contenedor {
 
@@ -13,21 +13,21 @@ class Contenedor {
         // utilizo los métodos sincrónicos de fs para que las validaciones y lectura del mayor id sean bloqueantes
         // En todos los métodos de la clase Contenedor uso fs.promises
 
-        if (!fs.existsSync(archivo)) { // Valido si existe el archivo para evaluar si lo creo o no.
+        if (!existsSync(archivo)) { // Valido si existe el archivo para evaluar si lo creo o no.
 
-            const dir = path.dirname(archivo)
-            if (!fs.existsSync(dir)) {
+            const dir = dirname(archivo)
+            if (!existsSync(dir)) {
                 // Valido si existe la ruta del archivo, y sino la creo!
                 // sino luego me falla la creación del archivo...
                 try {
-                    fs.mkdirSync(dir)
+                    mkdirSync(dir)
 
                 } catch (error) {
                     throw `Error al crear carpeta: ${dir}`
                 }
             }
             try {
-                fs.writeFileSync(archivo, JSON.stringify([]))
+                writeFileSync(archivo, JSON.stringify([]))
                 console.log(`Archivo ${archivo} creado de cero`)
 
             } catch (error) {
@@ -38,7 +38,7 @@ class Contenedor {
         // En esta instancia del código el archivo en cuestión ya existe
         // ya sea desde antes de ejecutar este Constructor o porque yo lo cree líneas arriba inicializandolo con un array vacío
         try {
-            const contenidoFile = JSON.parse(fs.readFileSync(archivo, 'utf-8'))
+            const contenidoFile = JSON.parse(readFileSync(archivo, 'utf-8'))
             for (const obj of contenidoFile) {
                 if (obj.id > this.lastId) {
                     this.lastId = obj.id
@@ -53,7 +53,7 @@ class Contenedor {
 
     async getAll() { //return Object[] - Devuelve un array con los objetos presentes en el archivo.
         try {
-            return JSON.parse(await fs.promises.readFile(this.archivo, 'utf-8'))
+            return JSON.parse(await promises.readFile(this.archivo, 'utf-8'))
 
         } catch (error) {
             throw `Error al querer leer el contenido del archivo: ${this.archivo}`
@@ -74,7 +74,7 @@ class Contenedor {
                 const newObj = { id: this.lastId + 1, ...objeto } // Agrego al objeto su id
                 contenidoFile.push(newObj)
 
-                await fs.promises.writeFile(this.archivo, JSON.stringify(contenidoFile, null, 2))
+                await promises.writeFile(this.archivo, JSON.stringify(contenidoFile, null, 2))
 
                 this.lastId++ // Incremento post escritura por las dudas de que falle
                 return this.lastId
@@ -105,7 +105,7 @@ class Contenedor {
 
             if (contenidoFile.length > newContenido.length) { // Valido para no sobre-escribir file si no vale la pena
 
-                await fs.promises.writeFile(this.archivo, JSON.stringify(newContenido, null, 2))
+                await promises.writeFile(this.archivo, JSON.stringify(newContenido, null, 2))
                 console.log(`Eliminado del file objeto con id: ${number}`);
                 return true
 
@@ -120,7 +120,7 @@ class Contenedor {
 
     async deleteAll() { //: void - Elimina todos los objetos presentes en el archivo.
         try {
-            await fs.promises.writeFile(this.archivo, JSON.stringify([]))
+            await promises.writeFile(this.archivo, JSON.stringify([]))
             console.log('Se ha vaciado el file:', this.archivo);
             return true
 
@@ -147,7 +147,7 @@ class Contenedor {
                         return x
                     })
 
-                    await fs.promises.writeFile(this.archivo, JSON.stringify(newCF, null, 2))
+                    await promises.writeFile(this.archivo, JSON.stringify(newCF, null, 2))
                     return true
 
                 } catch (error) {
@@ -164,4 +164,4 @@ class Contenedor {
     }
 }
 
-module.exports = Contenedor
+export default Contenedor

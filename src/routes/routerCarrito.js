@@ -1,17 +1,17 @@
 //Importo clases Contenedoras e instancio.
-const { ContenedorCarritos } = require('../models/ContenedorCarritos')
+import { ContenedorCarritos } from '../models/ContenedorCarritos.js';
 const contenedorCarritos = new ContenedorCarritos()
-const { ContenedorProductos } = require('../models/ContenedorProductos')
+import { ContenedorProductos } from '../models/ContenedorProductos.js';
 const contenedorProductos = new ContenedorProductos()
 
 //Importo express y configuro Routers
-const express = require("express");
+import express, { json, urlencoded } from "express";
 const { Router } = express
 const routerCarrito = Router()
 
 //Configuro para poder leer sin problemas los req.body
-routerCarrito.use(express.json())
-routerCarrito.use(express.urlencoded({ extended: true }))
+routerCarrito.use(json())
+routerCarrito.use(urlencoded({ extended: true }))
 
 //GET '/api/carrito' -> devuelve array con todos los carritos registrados.
 routerCarrito.get("/", async (req, res) => {
@@ -143,4 +143,4 @@ routerCarrito.delete("/:id/productos/:id_prod", async (req, res) => {
     }
 })
 
-module.exports = routerCarrito
+export default routerCarrito
