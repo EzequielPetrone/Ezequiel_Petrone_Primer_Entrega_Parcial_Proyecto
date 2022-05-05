@@ -44,7 +44,7 @@ class Contenedor {
                     this.lastId = obj.id
                 }
             }
-            console.log('Objeto Contenedor creado en base al archivo:', archivo)
+            //console.log('Objeto Contenedor creado en base al archivo:', archivo)
 
         } catch (error) {
             throw `El formato del contenido del archivo ${archivo} es incompatible con esta aplicación. No puede obtenerse un Array de su parseo.`
@@ -106,11 +106,11 @@ class Contenedor {
             if (contenidoFile.length > newContenido.length) { // Valido para no sobre-escribir file si no vale la pena
 
                 await promises.writeFile(this.archivo, JSON.stringify(newContenido, null, 2))
-                console.log(`Eliminado del file objeto con id: ${number}`);
+                //console.log(`Eliminado del file objeto con id: ${number}`);
                 return true
 
             } else {
-                console.log(`No hay objeto con id: ${number} para eliminar. Contenido del file sigue igual`);
+                //console.log(`No hay objeto con id: ${number} para eliminar. Contenido del file sigue igual`);
                 return false
             }
         } catch (error) {
@@ -141,12 +141,11 @@ class Contenedor {
 
                     const newCF = contenidoFile.map(x => {
                         if (x.id == id) {
-                            Object.assign(x, objeto)
-                            x.id = parseInt(id)
+                            Object.assign(x, objeto) //este método es mágico 
+                            x.id = parseInt(id) //esto lo hago porque en algunos casos podía dejarme el id como string y yo lo quiero number
                         }
                         return x
                     })
-
                     await promises.writeFile(this.archivo, JSON.stringify(newCF, null, 2))
                     return true
 

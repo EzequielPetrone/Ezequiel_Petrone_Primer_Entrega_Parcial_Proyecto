@@ -15,31 +15,34 @@ routerCarrito.use(urlencoded({ extended: true }))
 
 //GET '/api/carrito' -> devuelve array con todos los carritos registrados.
 routerCarrito.get("/", async (req, res) => {
+    let errCode = 0 //Utilizo esta variable para manejar diferentes códigos de error
     try {
         res.json(await contenedorCarritos.getAll())
-
     } catch (error) {
-        res.status(500).json({ error: error });
+        res.status(500).json({ error: errCode, descripcion: error });
     }
 })
 
 //POST '/api/carrito' -> crea un carrito y lo devuelve con su id asignado.
 routerCarrito.post("/", async (req, res) => {
+    let errCode = 0 //Utilizo esta variable para manejar diferentes códigos de error
     try {
         const carrito = { timeStamp: Date.now(), productos: [] }
         const newId = await contenedorCarritos.save(carrito)
         if (newId) {
             res.json({ id: newId, ...carrito })
         } else {
+            errCode = -7
             throw 'No se pudo crear el carrito'
         }
     } catch (error) {
-        res.status(500).json({ error: error });
+        res.status(500).json({ error: errCode, descripcion: error });
     }
 })
 
 //DELETE '/api/carrito/:id' -> elimina un carrito según su id (pero antes devuelve stock de productos)
 routerCarrito.delete("/:id", async (req, res) => {
+    let errCode = 0 //Utilizo esta variable para manejar diferentes códigos de error
     try {
         const id = req.params.id
         const carrito = await contenedorCarritos.getById(id)
@@ -53,30 +56,34 @@ routerCarrito.delete("/:id", async (req, res) => {
             res.json({ ok: `Eliminado del file carrito con id ${id}` })
 
         } else {
+            errCode = -8
             throw `Carrito con id ${id} NO encontrado`
         }
     } catch (error) {
-        res.status(500).json({ error: error });
+        res.status(500).json({ error: errCode, descripcion: error });
     }
 })
 
 //GET '/api/carrito/:id/productos' -> devuelve productos de un carrito según su id.
 routerCarrito.get("/:id/productos", async (req, res) => {
+    let errCode = 0 //Utilizo esta variable para manejar diferentes códigos de error
     try {
         const id = req.params.id
         const carrito = await contenedorCarritos.getById(id)
         if (carrito && carrito.productos) {
             res.json(carrito.productos)
         } else {
-            throw `Carrito con id ${id} NO encontrado / sin array de productos `
+            errCode = -8
+            throw `Carrito con id ${id} NO encontrado`
         }
     } catch (error) {
-        res.status(500).json({ error: error });
+        res.status(500).json({ error: errCode, descripcion: error });
     }
 })
 
 //POST '/api/carrito/:id/productos' -> Incorpora producto a carrito según su id.
 routerCarrito.post("/:id/productos", async (req, res) => {
+    let errCode = 0 //Utilizo esta variable para manejar diferentes códigos de error
     //En mi diseño el body que se recibe del Front es un objeto con la siguiente estructura: {idProd, qty}
     //es decir, el id del producto en el contenedor de productos y la cantidad a agregar en el carrito
     try {
@@ -97,28 +104,33 @@ routerCarrito.post("/:id/productos", async (req, res) => {
 
                     } else { //Sino lo agrego como nuevo elemento
                         const prod = await contenedorProductos.getById(idProd)
+                        //Me traigo el producto completo del maestro pero obviamente lo que guardo en el carrito como stock es la qty solicitada por el cliente (y no el stock disponible total)
                         prod.stock = qty
                         carrito.productos.push(prod)
                     }
-                    await contenedorCarritos.editById(id, carrito) //Escribo el carrito editado
+                    await contenedorCarritos.editById(id, carrito) //Sobreescribo el carrito editado
                     res.json({ ok: `${qty} unidades del producto con id ${idProd} agregadas al carrito con id ${id}` })
 
                 } else {
-                    throw `No puede actualizarse el stock del producto con id ${idProd}`
+                    errCode = -9
+                    throw `No puede actualizarse el stock del producto con id ${idProd}. Carrito sigue igual`
                 }
             } else {
-                throw `No existe carrito con id ${id}`
+                errCode = -8
+                throw `Carrito con id ${id} NO encontrado`
             }
         } else {
-            throw `Bad Request Body`
+            errCode = -10
+            throw `Bad Request Body. Estructura esperada: {idProd, qty}`
         }
     } catch (error) {
-        res.status(500).json({ error: error });
+        res.status(500).json({ error: errCode, descripcion: error });
     }
 })
 
 //DELETE '/api/carrito/:id/productos/:id_prod' -> elimina un producto de un carrito según sus ids (pero antes devuelve stock de productos)
 routerCarrito.delete("/:id/productos/:id_prod", async (req, res) => {
+    let errCode = 0 //Utilizo esta variable para manejar diferentes códigos de error
     try {
         const { id, id_prod } = req.params
         const carrito = await contenedorCarritos.getById(id)
@@ -129,17 +141,19 @@ routerCarrito.delete("/:id/productos/:id_prod", async (req, res) => {
                 //Si existe el producto dentro del carrito lo primero que hago es devolver su stock y después lo elimino
                 await contenedorProductos.actualizarStock(id_prod, carrito.productos[index].stock)
                 carrito.productos.splice(index)
-                await contenedorCarritos.editById(id, carrito) //Escribo el carrito editado
+                await contenedorCarritos.editById(id, carrito) //Sobreescribo el carrito editado
                 res.json({ ok: `Eliminado del carrito con id ${id} el producto con id ${id_prod}` })
 
             } else {
+                errCode = -11
                 throw `Producto con id ${id_prod} NO encontrado dentro del carrito con id ${id}`
             }
         } else {
+            errCode = -8
             throw `Carrito con id ${id} NO encontrado`
         }
     } catch (error) {
-        res.status(500).json({ error: error });
+        res.status(500).json({ error: errCode, descripcion: error });
     }
 })
 

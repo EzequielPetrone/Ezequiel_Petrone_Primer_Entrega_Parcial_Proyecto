@@ -12,7 +12,11 @@ try {
     app.use('/api/carrito', routerCarrito)
 
     //Gestiono rutas no parametrizadas
-    app.use('*', (req, res) => res.status(404).json({ error: 'Page not found' }))
+    app.use('*', (req, res) => {
+        res.status(404).json(
+            { error: -2, descripcion: `ruta ${req.originalUrl} (método ${req.method}) no implementada` }
+        )
+    })
 
     //Configuro Middleware de manejo de errores
     app.use((err, req, res, next) => {
